@@ -1,0 +1,8 @@
+/* App.css is intentionally empty.
+
+   This file previously held the Vite starter styles, all of which
+   were commented out and never imported (main.jsx imports index.css
+   only). Every style for the Beyond Self build now lives in
+   index.css, next to the design tokens it depends on.
+
+   Safe to delete. */

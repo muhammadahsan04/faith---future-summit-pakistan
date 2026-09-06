@@ -1,0 +1,528 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+/* ============================================================
+   BEYOND SELF — A VISION FOR THE UMMAH
+   Design tokens taken directly from the edition design system.
+
+   The wordmark is placed as approved artwork, so Hornset is not
+   needed here. Adapter PE Variable Display is a licensed desktop
+   face, so it is named first in the UI stack and will be picked up
+   wherever it is installed or self-hosted, with Archivo as the
+   matched web fallback.
+   ============================================================ */
+
+:root {
+  /* Background gradient */
+  --mint: #8DE1A5;
+  --teal: #06A6A6;
+  --deep-teal: #04465E;
+  --navy: #0C283D;
+
+  /* Type & label colours */
+  --cream: #F5EDDC;
+  --ink: #0A1828;
+
+  --cream-soft: rgba(245, 237, 220, .74);
+  --cream-muted: rgba(245, 237, 220, .56);
+  --cream-faint: rgba(245, 237, 220, .34);
+  --line: rgba(245, 237, 220, .14);
+  --line-strong: rgba(245, 237, 220, .26);
+  --field: rgba(245, 237, 220, .05);
+  --panel: rgba(10, 24, 40, .66);
+  --mint-wash: rgba(141, 225, 165, .10);
+  --shadow: 0 22px 44px rgba(4, 20, 30, .34);
+
+  --font-display: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-ui: 'Adapter PE Variable Display', 'Archivo', 'Inter', sans-serif;
+
+  --lattice: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='46' viewBox='0 0 46 46'%3E%3Cg fill='none' stroke='rgba(245,237,220,0.10)' stroke-width='0.8'%3E%3Crect x='0' y='0' width='46' height='46'/%3E%3Cpath d='M23 0 L46 23 L23 46 L0 23 Z'/%3E%3C/g%3E%3C/svg%3E");
+
+  font-family: var(--font-ui);
+  color: var(--cream);
+  background: var(--deep-teal);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--cream);
+  background-color: var(--deep-teal);
+  background-image: var(--lattice),
+    linear-gradient(152deg, var(--mint) 0%, var(--teal) 28%, var(--deep-teal) 64%, var(--navy) 100%);
+  background-attachment: fixed, fixed;
+  background-size: 46px 46px, cover;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+}
+
+.summit-page {
+  min-height: 100vh;
+  padding: 13px 14px 35px;
+}
+
+/* ============================================================
+   INTRO
+   ============================================================ */
+
+.intro {
+  max-width: 1140px;
+  margin: 0 auto 31px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 17px 0 19px;
+  font-family: var(--font-ui);
+  color: var(--panel);
+  font-size: 12.5px;
+  font-weight: 900;
+  letter-spacing: 2.4px;
+}
+
+.eyebrow .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.438);
+}
+
+h1 {
+  margin: 0 0 20px;
+  max-width: 26ch;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 6vw, 42px);
+  line-height: 1.06;
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: white;
+}
+
+h1 strong {
+  font-weight: 900;
+  color: var(--panel);
+}
+
+.intro-copy {
+  margin: 10px 0 15px;
+  max-width: 62ch;
+  color: white;
+  font-size: 15.4px;
+  line-height: 1.5;
+}
+
+.intro-rule {
+  margin: 16px 0 0;
+  width: 64px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--deep-teal), var(--teal));
+}
+
+/* ============================================================
+   WORKSPACE
+   ============================================================ */
+
+.workspace {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   DETAILS CARD
+   ============================================================ */
+
+.details-card {
+  container: details-card / inline-size;
+  width: 554px;
+  padding: 25px 27px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+}
+
+.details-card h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--cream);
+}
+
+.details-card label {
+  display: block;
+  /* margin: 13px 0 10px; */
+  margin: 16px 0 12px;
+  color: var(--cream-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.details-card input:not([type='range']) {
+  display: block;
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  margin-bottom: 13px;
+  color: var(--cream);
+  background: var(--field);
+  font-size: 12.5px;
+  letter-spacing: .2px;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.details-card input:not([type='range']):focus {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 3px rgba(141, 225, 165, .18);
+  outline: none;
+}
+
+.details-card input::placeholder {
+  color: var(--cream-faint);
+}
+
+.details-card .photo-label {
+  display: block;
+  margin: 0 0 17px;
+  color: var(--cream-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.drop-zone {
+  display: flex;
+  min-height: clamp(125px, 19.5cqw, 150px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 7px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 10px;
+  background: rgba(245, 237, 220, .03);
+  cursor: pointer;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+
+.drop-zone:hover,
+.drop-zone:focus-visible {
+  border-color: var(--mint);
+  background: var(--mint-wash);
+  outline: none;
+}
+
+.drop-zone.uploaded {
+  border-style: solid;
+  border-color: var(--mint);
+  background: var(--mint-wash);
+}
+
+.upload-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--mint), var(--teal));
+}
+
+.uploaded .upload-button {
+  background: var(--mint);
+}
+
+.upload-icon,
+.download-icon {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.drop-zone b {
+  margin-top: 5px;
+  color: var(--cream);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: .7px;
+}
+
+.uploaded b {
+  color: var(--mint);
+}
+
+.drop-zone small {
+  color: var(--cream-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.error-text {
+  margin: 8px 0 0;
+  color: #FFB4A4;
+  font-size: 11px;
+  letter-spacing: .2px;
+}
+
+/* ============================================================
+   PHOTO ADJUSTMENTS
+   ============================================================ */
+
+.adjust-section {
+  margin-top: 13px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.adjust-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--cream-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.adjust-heading button {
+  padding: 4px 10px;
+  border: 1px solid rgba(141, 225, 165, .38);
+  border-radius: 6px;
+  color: var(--mint);
+  background: var(--mint-wash);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background-color .18s ease;
+}
+
+.adjust-heading button:hover {
+  background: rgba(141, 225, 165, .18);
+}
+
+.adjust-scroll {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0 8px;
+  scrollbar-width: auto;
+  scrollbar-color: var(--mint) rgba(245, 237, 220, .08);
+  -webkit-overflow-scrolling: touch;
+}
+
+.adjust-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.adjust-scroll::-webkit-scrollbar-track {
+  background: rgba(245, 237, 220, .08);
+  border-radius: 999px;
+}
+
+.adjust-scroll::-webkit-scrollbar-thumb {
+  background: var(--mint);
+  border-radius: 999px;
+}
+
+.details-card .range-row {
+  min-width: 340px;
+  display: grid;
+  grid-template-columns: 68px minmax(220px, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--cream-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.range-row input[type='range'] {
+  display: block;
+  width: 100%;
+  min-width: 220px;
+  margin: 0;
+  accent-color: var(--mint);
+  cursor: pointer;
+}
+
+/* ============================================================
+   PREVIEW — the poster is a single <canvas>. Every size, colour
+   and type decision lives in posterCanvas.js, which paints in its
+   own 563-unit design space and exports at 2088 x 2610. The canvas
+   keeps its aspect ratio and scales with the column width, so the
+   poster is fluid by construction.
+   ============================================================ */
+
+.preview-column {
+  width: 563px;
+}
+
+.canvas-frame {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+  line-height: 0;
+}
+
+.canvas-frame canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* Action buttons keep their fixed size on purpose: shrinking a
+   primary tap target as the screen gets smaller works against
+   usability. */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.actions button {
+  height: 40px;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+.download-button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ink);
+  background: linear-gradient(90deg, var(--mint), var(--teal));
+  box-shadow: 0 10px 20px rgba(6, 166, 166, .28);
+}
+
+.reset-button {
+  width: 64px;
+  border: 1px solid var(--line-strong);
+  color: var(--cream);
+  background: transparent;
+}
+
+.reset-button:hover {
+  background: rgba(245, 237, 220, .07);
+}
+
+/* ============================================================
+   FRAMING TIP
+   ============================================================ */
+
+.tip {
+  display: flex;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 12px 13px;
+  border: 1px solid rgba(141, 225, 165, .28);
+  border-radius: 12px;
+  background: var(--mint-wash);
+  color: var(--cream-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tip-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: var(--mint);
+}
+
+.tip b {
+  color: var(--mint);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .summit-page {
+    /* min-height: 100vh; */
+    padding: 11px 14px 28px;
+  }
+
+  .desktop-break {
+    display: none;
+  }
+
+  .workspace {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .details-card,
+  .preview-column {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
