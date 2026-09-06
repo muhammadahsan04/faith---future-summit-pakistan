@@ -133,7 +133,7 @@ export default function App() {
 
             <b>{photo ? truncateFileName(fileName, 24) : 'DRAG & DROP OR BROWSE'}</b>
 
-            <small>
+            <small className='text-center'>
               {photo
                 ? 'PHOTO ADDED — TAP TO CHANGE'
                 : 'PNG OR JPG — YOU CAN RESIZE & REPOSITION AFTER'}

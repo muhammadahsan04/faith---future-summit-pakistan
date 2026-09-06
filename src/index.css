@@ -98,8 +98,9 @@ input {
 }
 
 .eyebrow .dot {
-  width: 7px;
-  height: 7px;
+  min-width: 7px;
+  min-height: 7px;
+  /* margin-right: 10px; */
   border-radius: 50%;
   background: var(--teal);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.438);
