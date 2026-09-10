@@ -1,6 +1,6 @@
 /* ============================================================
    Beyond Self — "I am attending" poster canvas renderer
-   Faith & Future Summit · General Summit 3
+   Faith & Future Summit · September Edition
 
    The entire poster is painted here. Nothing about it exists in
    the DOM, so Inspect only ever shows a single <canvas> element.
@@ -11,11 +11,22 @@
    Design system reference — Beyond Self Edition:
      Mint #8DE1A5 · Teal #06A6A6 · Deep Teal #04465E · Navy #0C283D
      Type colour #F5EDDC · Label box #0A1828
-     Inter Black / Hornset / Adapter PE Variable Display
+     Inter Black / Adapter PE Variable Display
      Geometric lattice over the signature gradient
+
+   Layout, top to bottom:
+     1. Brand bar   — summit logo (left) · SISL | Al-Kawthar (right)
+     2. Kicker      — "I AM ATTENDING", centred
+     3. Hero row    — Faith & Future Summit headline · Beyond Self theme
+     4. Identity    — photo, name, designation, organisation
+     5. Meta bar    — date · time · venue
+     6. Footer band — Faith & Future Summit by SISL
    ============================================================ */
 
-import lockupSrc from './assets/beyond-self-lockup.png'
+import summitLogoSrc from './assets/summit-september-edition.png'
+import partnersSrc from './assets/sisl-alkawthar-lockup.png'
+import headlineSrc from './assets/faith-future-summit-logo.png'
+import themeSrc from './assets/beyond-self-lockup.png'
 
 export const CANVAS_W = 2088
 export const CANVAS_H = 2610
@@ -43,11 +54,9 @@ const COLOR = {
     shadow: `rgba(${INK_RGB}, 0.34)`,
 }
 
-/* The wordmark is now placed as supplied artwork, so Hornset is no
-   longer needed here. Adapter PE is still used for interface-level
-   type; it is a licensed desktop face, so it is named first and will
-   be used wherever it is installed or self-hosted, with Archivo as
-   the matched web fallback. */
+/* Adapter PE is a licensed desktop face, so it is named first and
+   will be used wherever it is installed or self-hosted, with
+   Archivo as the matched web fallback. */
 const FONT = {
     display: '"Inter", "Helvetica Neue", Arial, sans-serif',
     ui: '"Adapter PE Variable Display", "Archivo", "Inter", sans-serif',
@@ -60,35 +69,33 @@ const L = {
 
     lattice: { tile: 46, weight: 0.7 },
 
-    // kicker: { top: 28, size: 13.5, padX: 12, height: 28, radius: 3, tracking: 2.6 },
+    /* Both marks share one horizontal centre line. */
+    brandBar: {
+        centerY: 52,
+        summitLogo: { x: 9, width: 153 },
+        partners: { right: 13, width: 257 },
+    },
 
+    /* Centred on the poster. */
     kicker: {
-        top: 28,
-        size: 13.5,
-        padX: 12,
-        height: 28,
-        radius: 3,
-        tracking: 2.6,
+        top: 100,
+        size: 15.5,
+        padX: 14,
+        height: 31,
+        radius: 3.5,
+        tracking: 3,
     },
 
-    edition: {
-        size: 17,
-        tracking: 1.2,
-        topGap: 12,
-        bottomGap: 28,
+    /* Headline and theme lockup are sized to the same height so
+       their top and bottom edges line up. */
+    hero: {
+        top: 156,
+        height: 176,
+        headlineX: 50,
+        themeX: 323,
     },
 
-    /* The wordmark is the supplied lockup PNG. `ratio` is the
-       artwork's own height/width, kept here so the layout below it
-       holds its place while the image is still loading. */
-    // lockup: { top: 76, width: 220, ratio: 1.3037 },
-
-    // lockup: {
-    //     width: 220,
-    //     ratio: 1.3037,
-    // },
-    lockup: { top: 100, width: 180, ratio: 1.3037 },
-    rule: { gap: 14 },
+    rule: { gap: 16 },
 
     identity: { gap: 18, photo: 170, radius: 14, columnGap: 18 },
     name: { size: 32, tracking: -0.8 },
@@ -112,7 +119,6 @@ const L = {
 
 const CONTENT = {
     kicker: 'I AM ATTENDING',
-    edition: 'FAITH & FUTURE SUMMIT SEPTEMBER EDITION.',
     meta: [
         { label: 'DATE', value: ['20 Sep 26'] },
         { label: 'TIME', value: ['9am - 1pm'] },
@@ -121,6 +127,114 @@ const CONTENT = {
     footer: 'FAITH & FUTURE SUMMIT',
     footerSmall: ' BY SISL',
     placeholder: 'ADD YOUR PHOTO',
+}
+
+/* ---------- artwork ----------
+   All four marks are placed as supplied artwork, never re-typeset,
+   so they can't drift from the approved files. Swap a PNG in
+   ./assets to update it.
+
+   `aspect` is the artwork's own width/height, used only to reserve
+   the right footprint while the file is still loading.
+   `trim` crops away transparent padding baked into the file, so the
+   visible mark (not the empty canvas around it) is what gets sized
+   and aligned. */
+const ARTWORK = {
+    summitLogo: { src: summitLogoSrc, aspect: 5238 / 2785 },
+    partners: { src: partnersSrc, aspect: 3256 / 514, trim: true },
+    headline: { src: headlineSrc, aspect: 234 / 175 },
+    theme: { src: themeSrc, aspect: 175 / 174 },
+}
+
+const art = {}
+let artworkPromise = null
+
+/* Finds the visible (non-transparent) area of an image. Scanned on a
+   reduced copy so very large files stay fast. */
+function inkBounds(img) {
+    const w = img.naturalWidth
+    const h = img.naturalHeight
+    const full = { sx: 0, sy: 0, sw: w, sh: h }
+    try {
+        const s = Math.min(1, 1024 / Math.max(w, h))
+        const cw = Math.max(1, Math.round(w * s))
+        const ch = Math.max(1, Math.round(h * s))
+        const probe = document.createElement('canvas')
+        probe.width = cw
+        probe.height = ch
+        const pctx = probe.getContext('2d', { willReadFrequently: true })
+        pctx.drawImage(img, 0, 0, cw, ch)
+        const data = pctx.getImageData(0, 0, cw, ch).data
+
+        let minX = cw
+        let minY = ch
+        let maxX = -1
+        let maxY = -1
+        for (let y = 0; y < ch; y++) {
+            for (let x = 0; x < cw; x++) {
+                if (data[(y * cw + x) * 4 + 3] > 8) {
+                    if (x < minX) minX = x
+                    if (x > maxX) maxX = x
+                    if (y < minY) minY = y
+                    if (y > maxY) maxY = y
+                }
+            }
+        }
+        if (maxX < 0) return full
+
+        const sx = Math.max(0, Math.floor(minX / s))
+        const sy = Math.max(0, Math.floor(minY / s))
+        const ex = Math.min(w, Math.ceil((maxX + 1) / s))
+        const ey = Math.min(h, Math.ceil((maxY + 1) / s))
+        return { sx, sy, sw: ex - sx, sh: ey - sy }
+    } catch {
+        return full
+    }
+}
+
+function loadImage(key) {
+    const { src, trim } = ARTWORK[key]
+    return new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => {
+            const bounds = trim
+                ? inkBounds(img)
+                : { sx: 0, sy: 0, sw: img.naturalWidth, sh: img.naturalHeight }
+            art[key] = { img, ...bounds }
+            resolve(img)
+        }
+        img.onerror = () => resolve(null)
+        img.src = src
+    })
+}
+
+function loadArtwork() {
+    if (artworkPromise) return artworkPromise
+    artworkPromise = Promise.all(Object.keys(ARTWORK).map(loadImage))
+    return artworkPromise
+}
+
+function artAspect(key) {
+    const a = art[key]
+    return a && a.sw && a.sh ? a.sw / a.sh : ARTWORK[key].aspect
+}
+
+/* Size from a width or a height, keeping the artwork's proportions. */
+function artSize(key, { width, height }) {
+    const aspect = artAspect(key)
+    if (width != null) return { width, height: width / aspect }
+    return { width: height * aspect, height }
+}
+
+/* Draws the artwork if it has loaded; either way returns the
+   footprint, so nothing around it shifts when it lands. */
+function placeArt(ctx, key, x, y, size) {
+    const box = artSize(key, size)
+    const a = art[key]
+    if (a && a.img.naturalWidth) {
+        ctx.drawImage(a.img, a.sx, a.sy, a.sw, a.sh, x, y, box.width, box.height)
+    }
+    return box
 }
 
 /* ---------- small drawing helpers ---------- */
@@ -152,6 +266,14 @@ function measure(ctx, str) {
     return w - t
 }
 
+/* Width of the letters alone. Native letter-spacing also adds space
+   after the last character, which would push centred text off
+   centre, so it is taken back out here. */
+function inkWidth(ctx, str) {
+    const t = ctx._tracking || 0
+    return nativeTracking(ctx) ? measure(ctx, str) - t : measure(ctx, str)
+}
+
 function write(ctx, str, x, y) {
     const t = ctx._tracking || 0
     if (!t || nativeTracking(ctx)) {
@@ -164,7 +286,6 @@ function write(ctx, str, x, y) {
         cx += ctx.measureText(ch).width + t
     }
 }
-
 
 function clamp(ctx, str, maxWidth) {
     if (measure(ctx, str) <= maxWidth) return str
@@ -223,119 +344,54 @@ function drawLattice(ctx) {
     ctx.restore()
 }
 
-// function drawKicker(ctx) {
-//     const { top, size, padX, height, radius, tracking } = L.kicker
-//     setFont(ctx, `700 ${size}px ${FONT.ui}`, tracking)
-//     const boxWidth = measure(ctx, CONTENT.kicker) + padX * 2
+/* Summit logo on the left, SISL | Al-Kawthar University on the
+   right, both centred on the same line. */
+function drawBrandBar(ctx) {
+    const { centerY, summitLogo, partners } = L.brandBar
 
-//     shadowed(ctx, 14, 5, () => {
-//         ctx.fillStyle = COLOR.ink
-//         roundRect(ctx, L.padX, top, boxWidth, height, radius)
-//         ctx.fill()
-//     })
+    const logo = artSize('summitLogo', { width: summitLogo.width })
+    placeArt(ctx, 'summitLogo', summitLogo.x, centerY - logo.height / 2, logo)
 
-//     ctx.fillStyle = COLOR.cream
-//     write(ctx, CONTENT.kicker, L.padX + padX, top + height / 2 + size * 0.36)
-
-//     // Edition text — I AM ATTENDING ke neeche
-//     setFont(ctx, `700 11px ${FONT.ui}`, 1.5)
-//     ctx.fillStyle = COLOR.deepTeal
-
-//     const editionY = top + height + 15
-
-//     write(
-//         ctx,
-//         CONTENT.edition,
-//         L.padX,
-//         editionY
-//     )
-
-//     return editionY
-// }
+    const lockup = artSize('partners', { width: partners.width })
+    placeArt(
+        ctx,
+        'partners',
+        DESIGN_W - partners.right - lockup.width,
+        centerY - lockup.height / 2,
+        lockup
+    )
+}
 
 function drawKicker(ctx) {
     const { top, size, padX, height, radius, tracking } = L.kicker
-    const { size: editionSize, tracking: editionTracking, topGap, bottomGap } = L.edition
 
-    // I AM ATTENDING
     setFont(ctx, `700 ${size}px ${FONT.ui}`, tracking)
-
-    const boxWidth = measure(ctx, CONTENT.kicker) + padX * 2
+    const boxWidth = inkWidth(ctx, CONTENT.kicker) + padX * 2
+    const x = (DESIGN_W - boxWidth) / 2
 
     shadowed(ctx, 14, 5, () => {
         ctx.fillStyle = COLOR.ink
-        roundRect(ctx, L.padX, top, boxWidth, height, radius)
+        roundRect(ctx, x, top, boxWidth, height, radius)
         ctx.fill()
     })
 
     ctx.fillStyle = COLOR.cream
-
-    write(
-        ctx,
-        CONTENT.kicker,
-        L.padX + padX,
-        top + height / 2 + size * 0.36
-    )
-
-    // THE & FUTURE SUMMIT SEPTEMBER EDITION.
-    setFont(ctx, `800 ${editionSize}px ${FONT.ui}`, editionTracking)
-    ctx.fillStyle = COLOR.ink
-
-    const editionY =
-        top +
-        height +
-        topGap +
-        editionSize
-
-    write(
-        ctx,
-        CONTENT.edition,
-        L.padX,
-        editionY
-    )
-
-    // Return the bottom of edition + bottom spacing
-    return editionY + bottomGap
+    write(ctx, CONTENT.kicker, x + padX, top + height / 2 + size * 0.36)
 }
 
-
-/* The wordmark is the approved lockup artwork, placed as-is: the
-   cream-on-dark variant with its own fade and drop shadow baked in.
-   Nothing about it is re-typeset, so it can never drift from the
-   design system. Swap the PNG in ./assets to update it. */
-let lockup = null
-let lockupPromise = null
-
-function loadLockup() {
-    if (lockupPromise) return lockupPromise
-    lockupPromise = new Promise((resolve) => {
-        const img = new Image()
-        img.onload = () => {
-            lockup = img
-            resolve(img)
-        }
-        img.onerror = () => resolve(null)
-        img.src = lockupSrc
-    })
-    return lockupPromise
+/* Faith & Future Summit headline (with "September Edition") on the
+   left, the Beyond Self theme lockup on the right. */
+function drawHero(ctx) {
+    const { top, height, headlineX, themeX } = L.hero
+    const headline = placeArt(ctx, 'headline', headlineX, top, { height })
+    const theme = placeArt(ctx, 'theme', themeX, top, { height })
+    return top + Math.max(headline.height, theme.height)
 }
 
-function drawLockup(ctx) {
-    const { top, width, ratio } = L.lockup
-
-    /* Before the artwork resolves, reserve its exact footprint so the
-       rest of the poster never shifts when it lands. */
-    if (!lockup || !lockup.naturalWidth) return top + width * ratio
-
-    const height = width * (lockup.naturalHeight / lockup.naturalWidth)
-    ctx.drawImage(lockup, L.padX, top, width, height)
-    return top + height
-}
-
-/* No divider is painted between the wordmark and the identity block —
-   `L.rule.gap` is kept purely as the breathing space between them. */
-function ruleGap(afterLockup) {
-    return afterLockup + L.rule.gap
+/* No divider is painted between the hero row and the identity
+   block — `L.rule.gap` is kept purely as breathing space. */
+function ruleGap(afterHero) {
+    return afterHero + L.rule.gap
 }
 
 function drawPhoto(ctx, x, y, box, image, adjustments) {
@@ -494,25 +550,28 @@ export function drawPoster(canvas, { details = {}, image = null, adjustments } =
     ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0)
     ctx.textBaseline = 'alphabetic'
     ctx.textAlign = 'left'
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
 
     drawBackground(ctx)
     drawLattice(ctx)
     drawBand(ctx)
 
+    drawBrandBar(ctx)
     drawKicker(ctx)
-    const afterLockup = drawLockup(ctx)
-    const afterRule = ruleGap(afterLockup)
+    const afterHero = drawHero(ctx)
+    const afterRule = ruleGap(afterHero)
     drawIdentity(ctx, afterRule, details, image, adjustments)
     drawMeta(ctx)
     drawFooter(ctx)
 }
 
-/* Fonts and the wordmark artwork must both resolve before the first
+/* Fonts and all four pieces of artwork must resolve before the first
    paint, otherwise the canvas bakes in a fallback face or draws the
-   poster with a hole where the lockup goes. Adapter PE is requested
+   poster with holes where the marks go. Adapter PE is requested
    too, so it is used wherever it happens to be available. */
 export function loadPosterFonts() {
-    const artwork = loadLockup()
+    const artwork = loadArtwork()
     if (!document.fonts) return artwork
 
     const faces = [
