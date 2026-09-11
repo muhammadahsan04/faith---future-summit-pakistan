@@ -26,7 +26,7 @@
 import summitLogoSrc from './assets/summit-september-edition.svg'
 import partnersSrc from './assets/sisl-alkawthar-lockup.svg'
 import headlineSrc from './assets/faith-future-summit-logo.svg'
-import themeSrc from './assets/beyond-self-lockup.svg'
+import themeSrc from './assets/beyond-self-lockup.png'
 
 export const CANVAS_W = 2088
 export const CANVAS_H = 2610
