@@ -35,7 +35,7 @@
 import summitLogoSvg from './assets/1.svg?raw'
 import partnersSvg from './assets/2.svg?raw'
 import headlineSvg from './assets/3.svg?raw'
-import themeSvg from './assets/4.png?raw'
+import themeSvg from './assets/4.png'
 
 
 /* ============================================================
