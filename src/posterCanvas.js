@@ -233,7 +233,7 @@ const ARTWORK = {
 
     theme: {
         svg: themeSvg,
-        aspect: 108 / 107,
+        aspect: 175 / 174,
         trim: false,
     },
 }
@@ -1232,7 +1232,7 @@ function drawHero(ctx) {
             themeX,
             top,
             {
-                height,
+                height: 120,
             }
         )
 
