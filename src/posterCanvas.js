@@ -233,7 +233,7 @@ const ARTWORK = {
 
     theme: {
         svg: themeSvg,
-        aspect: 175 / 174,
+        aspect: 108 / 107,
         trim: false,
     },
 }
