@@ -3,39 +3,31 @@
    Faith & Future Summit · September Edition
 
    PERFORMANCE VERSION
-   ------------------------------------------------------------
-   SVG artwork is imported as raw SVG using Vite's ?raw import.
 
-   This means:
-     - No separate network request is needed for the SVG files.
-     - All four SVGs start loading in parallel.
-     - SVGs are decoded before being drawn.
-     - Artwork is cached after the first load.
-     - The canvas redraws automatically once artwork is ready.
-     - No lazy loading is used because these are above-the-fold
-       poster assets and should appear as quickly as possible.
+   IMPORTANT:
+   1.svg, 2.svg and 3.svg use raw SVG imports.
+   4.svg uses a NORMAL Vite asset import because that is the
+   correct rendering method for the supplied Beyond Self artwork.
    ============================================================ */
 
 
 /* ============================================================
    SVG IMPORTS
-   ------------------------------------------------------------
-   IMPORTANT:
-   Keep your SVG files in:
-
-       ./assets/1.svg
-       ./assets/2.svg
-       ./assets/3.svg
-       ./assets/4.svg
-
-   ?raw tells Vite to import the actual SVG source instead of
-   generating a separate URL request.
    ============================================================ */
 
 import summitLogoSvg from './assets/1.svg?raw'
 import partnersSvg from './assets/2.svg?raw'
 import headlineSvg from './assets/3.svg?raw'
-import themeSvg from './assets/4.png'
+
+/*
+ * IMPORTANT:
+ *
+ * 4.svg must NOT use ?raw.
+ *
+ * Vite returns the asset URL here and the browser loads the SVG
+ * directly into Image().
+ */
+import themeSrc from './assets/4.png'
 
 
 /* ============================================================
@@ -64,13 +56,27 @@ const COLOR = {
     navy: '#0C283D',
     ink: '#0A1828',
     cream: '#F5EDDC',
-    creamSoft: `rgba(${CREAM_RGB}, 0.74)`,
-    creamFaint: `rgba(${CREAM_RGB}, 0.55)`,
-    lattice: `rgba(${CREAM_RGB}, 0.11)`,
-    well: `rgba(${INK_RGB}, 0.38)`,
-    metaLabel: `rgba(${INK_RGB}, 0.55)`,
-    metaRule: `rgba(${INK_RGB}, 0.16)`,
-    shadow: `rgba(${INK_RGB}, 0.34)`,
+
+    creamSoft:
+        `rgba(${CREAM_RGB}, 0.74)`,
+
+    creamFaint:
+        `rgba(${CREAM_RGB}, 0.55)`,
+
+    lattice:
+        `rgba(${CREAM_RGB}, 0.11)`,
+
+    well:
+        `rgba(${INK_RGB}, 0.38)`,
+
+    metaLabel:
+        `rgba(${INK_RGB}, 0.55)`,
+
+    metaRule:
+        `rgba(${INK_RGB}, 0.16)`,
+
+    shadow:
+        `rgba(${INK_RGB}, 0.34)`,
 }
 
 
@@ -79,8 +85,11 @@ const COLOR = {
    ============================================================ */
 
 const FONT = {
-    display: '"Inter", "Helvetica Neue", Arial, sans-serif',
-    ui: '"Adapter PE Variable Display", "Archivo", "Inter", sans-serif',
+    display:
+        '"Inter", "Helvetica Neue", Arial, sans-serif',
+
+    ui:
+        '"Adapter PE Variable Display", "Archivo", "Inter", sans-serif',
 }
 
 
@@ -122,8 +131,20 @@ const L = {
     hero: {
         top: 156,
         height: 176,
+
         headlineX: 50,
+
+        /*
+         * Beyond Self artwork position.
+         */
         themeX: 323,
+
+        /*
+         * Width is easier to control for this particular 4.svg
+         * because this is how the artwork works correctly in your
+         * original General Summit renderer.
+         */
+        themeWidth: 180,
     },
 
     rule: {
@@ -154,7 +175,13 @@ const L = {
         radius: 8,
         padX: 15,
         cellPadX: 13,
-        columns: [1, 1, 2.1],
+
+        columns: [
+            1,
+            1,
+            2.1,
+        ],
+
         labelSize: 10.5,
         labelTracking: 1.6,
         valueSize: 20,
@@ -178,17 +205,22 @@ const L = {
    ============================================================ */
 
 const CONTENT = {
-    kicker: 'I AM ATTENDING',
+    kicker:
+        'I AM ATTENDING',
 
     meta: [
         {
             label: 'DATE',
-            value: ['20 Sep 26'],
+            value: [
+                '20 Sep 26',
+            ],
         },
 
         {
             label: 'TIME',
-            value: ['9am - 1pm'],
+            value: [
+                '9am - 1pm',
+            ],
         },
 
         {
@@ -200,17 +232,27 @@ const CONTENT = {
         },
     ],
 
-    footer: 'FAITH & FUTURE SUMMIT',
+    footer:
+        'FAITH & FUTURE SUMMIT',
 
-    footerSmall: ' BY SISL',
+    footerSmall:
+        ' BY SISL',
 
-    placeholder: 'ADD YOUR PHOTO',
+    placeholder:
+        'ADD YOUR PHOTO',
 }
 
 
 /* ============================================================
    ARTWORK
    ============================================================ */
+
+/*
+ * 1, 2 and 3 use raw SVG strings.
+ *
+ * 4 is deliberately NOT stored here because it is loaded through
+ * the normal Vite asset URL method.
+ */
 
 const ARTWORK = {
     summitLogo: {
@@ -230,12 +272,6 @@ const ARTWORK = {
         aspect: 234 / 175,
         trim: false,
     },
-
-    theme: {
-        svg: themeSvg,
-        aspect: 108 / 107,
-        trim: false,
-    },
 }
 
 
@@ -243,55 +279,39 @@ const ARTWORK = {
    ARTWORK CACHE
    ============================================================ */
 
-/*
- * Loaded artwork is stored here.
-
- * Example:
- *
- * art.headline = {
- *     img,
- *     sx,
- *     sy,
- *     sw,
- *     sh
- * }
- */
-
-const art = Object.create(null)
+const art =
+    Object.create(null)
 
 
-/*
- * This promise guarantees that the SVG files are loaded only once.
- */
-let artworkPromise = null
+let artworkPromise =
+    null
 
 
-/*
- * Redraw callbacks.
-
- * Instead of using a WeakMap/Map and trying to iterate over it,
- * we simply keep callbacks that should run after artwork loads.
-
- * This completely avoids:
-
- *     TypeError: canvasStates is not iterable
- */
-const artworkRedrawCallbacks = new Set()
+const artworkRedrawCallbacks =
+    new Set()
 
 
 /* ============================================================
    SVG -> BLOB URL
    ============================================================ */
 
-function svgToObjectUrl(svg) {
-    const blob = new Blob(
-        [svg],
-        {
-            type: 'image/svg+xml;charset=utf-8',
-        }
-    )
+function svgToObjectUrl(
+    svg
+) {
+    const blob =
+        new Blob(
+            [
+                svg
+            ],
+            {
+                type:
+                    'image/svg+xml;charset=utf-8',
+            }
+        )
 
-    return URL.createObjectURL(blob)
+    return URL.createObjectURL(
+        blob
+    )
 }
 
 
@@ -299,19 +319,14 @@ function svgToObjectUrl(svg) {
    TRANSPARENT PIXEL BOUNDS
    ============================================================ */
 
-/*
- * Finds the visible non-transparent area of an SVG/image.
+function inkBounds(
+    img
+) {
+    const w =
+        img.naturalWidth
 
- * This is only used for the partners artwork because that SVG
- * contains transparent padding.
- *
- * The scan is limited to 1024px so that very large SVGs don't
- * cause an unnecessarily expensive pixel scan.
- */
-
-function inkBounds(img) {
-    const w = img.naturalWidth
-    const h = img.naturalHeight
+    const h =
+        img.naturalHeight
 
     const full = {
         sx: 0,
@@ -321,36 +336,57 @@ function inkBounds(img) {
     }
 
     try {
-        const s = Math.min(
-            1,
-            1024 / Math.max(w, h)
-        )
+        const s =
+            Math.min(
+                1,
+                1024 /
+                Math.max(
+                    w,
+                    h
+                )
+            )
 
-        const cw = Math.max(
-            1,
-            Math.round(w * s)
-        )
+        const cw =
+            Math.max(
+                1,
+                Math.round(
+                    w *
+                    s
+                )
+            )
 
-        const ch = Math.max(
-            1,
-            Math.round(h * s)
-        )
+        const ch =
+            Math.max(
+                1,
+                Math.round(
+                    h *
+                    s
+                )
+            )
 
         const probe =
-            document.createElement('canvas')
+            document.createElement(
+                'canvas'
+            )
 
-        probe.width = cw
-        probe.height = ch
+        probe.width =
+            cw
+
+        probe.height =
+            ch
 
         const pctx =
             probe.getContext(
                 '2d',
                 {
-                    willReadFrequently: true,
+                    willReadFrequently:
+                        true,
                 }
             )
 
-        if (!pctx) {
+        if (
+            !pctx
+        ) {
             return full
         }
 
@@ -375,62 +411,121 @@ function inkBounds(img) {
         let maxX = -1
         let maxY = -1
 
-        for (let y = 0; y < ch; y++) {
-            for (let x = 0; x < cw; x++) {
+        for (
+            let y = 0;
+            y < ch;
+            y++
+        ) {
+            for (
+                let x = 0;
+                x < cw;
+                x++
+            ) {
                 const alpha =
                     data[
-                        (y * cw + x) * 4 + 3
+                        (
+                            y *
+                            cw +
+                            x
+                        ) *
+                        4 +
+                        3
                     ]
 
-                if (alpha > 8) {
-                    if (x < minX) {
+                if (
+                    alpha >
+                    8
+                ) {
+                    if (
+                        x <
+                        minX
+                    ) {
                         minX = x
                     }
 
-                    if (x > maxX) {
+                    if (
+                        x >
+                        maxX
+                    ) {
                         maxX = x
                     }
 
-                    if (y < minY) {
+                    if (
+                        y <
+                        minY
+                    ) {
                         minY = y
                     }
 
-                    if (y > maxY) {
+                    if (
+                        y >
+                        maxY
+                    ) {
                         maxY = y
                     }
                 }
             }
         }
 
-        if (maxX < 0) {
+        if (
+            maxX <
+            0
+        ) {
             return full
         }
 
-        const sx = Math.max(
-            0,
-            Math.floor(minX / s)
-        )
+        const sx =
+            Math.max(
+                0,
+                Math.floor(
+                    minX /
+                    s
+                )
+            )
 
-        const sy = Math.max(
-            0,
-            Math.floor(minY / s)
-        )
+        const sy =
+            Math.max(
+                0,
+                Math.floor(
+                    minY /
+                    s
+                )
+            )
 
-        const ex = Math.min(
-            w,
-            Math.ceil((maxX + 1) / s)
-        )
+        const ex =
+            Math.min(
+                w,
+                Math.ceil(
+                    (
+                        maxX +
+                        1
+                    ) /
+                    s
+                )
+            )
 
-        const ey = Math.min(
-            h,
-            Math.ceil((maxY + 1) / s)
-        )
+        const ey =
+            Math.min(
+                h,
+                Math.ceil(
+                    (
+                        maxY +
+                        1
+                    ) /
+                    s
+                )
+            )
 
         return {
             sx,
             sy,
-            sw: ex - sx,
-            sh: ey - sy,
+            sw:
+                ex -
+                sx,
+
+            sh:
+                ey -
+                sy,
         }
     } catch {
         return full
@@ -439,111 +534,193 @@ function inkBounds(img) {
 
 
 /* ============================================================
-   LOAD ONE SVG
+   LOAD RAW SVG
    ============================================================ */
 
-function loadSvgImage(key) {
+function loadSvgImage(
+    key
+) {
     const {
         svg,
         trim,
-    } = ARTWORK[key]
+    } =
+        ARTWORK[key]
 
-    return new Promise((resolve) => {
-        const img = new Image()
+    return new Promise(
+        (
+            resolve
+        ) => {
+            const img =
+                new Image()
 
-        /*
-         * Tell the browser that this image is important.
-         */
-        try {
-            img.fetchPriority = 'high'
-        } catch {
-            /*
-             * fetchPriority isn't supported in every browser.
-             */
-        }
+            try {
+                img.fetchPriority =
+                    'high'
+            } catch {
+                /* Unsupported browser */
+            }
 
-        /*
-         * Prefer synchronous decoding where supported.
-         */
-        img.decoding = 'sync'
+            img.decoding =
+                'sync'
 
-        /*
-         * Convert the raw SVG source into a temporary object URL.
-         */
-        const objectUrl =
-            svgToObjectUrl(svg)
+            const objectUrl =
+                svgToObjectUrl(
+                    svg
+                )
 
-        const cleanup = () => {
-            URL.revokeObjectURL(
+            const cleanup =
+                () => {
+                    URL.revokeObjectURL(
+                        objectUrl
+                    )
+                }
+
+            img.onload =
+                async () => {
+                    if (
+                        typeof img.decode ===
+                        'function'
+                    ) {
+                        try {
+                            await img.decode()
+                        } catch {
+                            /* Image still usable */
+                        }
+                    }
+
+                    const bounds =
+                        trim
+                            ? inkBounds(
+                                img
+                            )
+                            : {
+                                sx: 0,
+                                sy: 0,
+                                sw:
+                                    img.naturalWidth,
+                                sh:
+                                    img.naturalHeight,
+                            }
+
+                    art[key] = {
+                        img,
+                        ...bounds,
+                    }
+
+                    cleanup()
+
+                    resolve(
+                        img
+                    )
+                }
+
+            img.onerror =
+                () => {
+                    cleanup()
+
+                    console.error(
+                        `Failed to load poster artwork: ${key}`
+                    )
+
+                    resolve(
+                        null
+                    )
+                }
+
+            img.src =
                 objectUrl
-            )
         }
+    )
+}
 
-        img.onload = async () => {
-            /*
-             * Wait until the browser has decoded the image.
-             *
-             * This prevents drawImage() from being delayed later.
-             */
-            if (
-                typeof img.decode ===
-                'function'
-            ) {
-                try {
-                    await img.decode()
-                } catch {
-                    /*
-                     * Some browsers can reject decode() even though
-                     * the image itself is usable.
-                     */
-                }
+
+/* ============================================================
+   LOAD 4.SVG DIRECTLY
+   ============================================================ */
+
+/*
+ * This is the important part.
+ *
+ * 4.svg is handled exactly like your working General Summit code:
+ *
+ *     import themeSrc from './assets/4.svg'
+ *
+ *     const img = new Image()
+ *     img.src = themeSrc
+ *
+ * No Blob.
+ * No ?raw.
+ * No transparent pixel scan.
+ * No viewBox rewriting.
+ */
+
+function loadThemeImage() {
+    return new Promise(
+        (
+            resolve
+        ) => {
+            const img =
+                new Image()
+
+            try {
+                img.fetchPriority =
+                    'high'
+            } catch {
+                /* unsupported */
             }
 
-            /*
-             * Calculate visible bounds only for artwork that
-             * actually requires trimming.
-             */
-            const bounds = trim
-                ? inkBounds(img)
-                : {
-                    sx: 0,
-                    sy: 0,
-                    sw: img.naturalWidth,
-                    sh: img.naturalHeight,
+            img.decoding =
+                'sync'
+
+            img.onload =
+                async () => {
+                    if (
+                        typeof img.decode ===
+                        'function'
+                    ) {
+                        try {
+                            await img.decode()
+                        } catch {
+                            /* image is still usable */
+                        }
+                    }
+
+                    art.theme = {
+                        img,
+
+                        sx: 0,
+                        sy: 0,
+
+                        sw:
+                            img.naturalWidth,
+
+                        sh:
+                            img.naturalHeight,
+                    }
+
+                    resolve(
+                        img
+                    )
+                }
+
+            img.onerror =
+                () => {
+                    console.error(
+                        'Failed to load poster artwork: theme'
+                    )
+
+                    resolve(
+                        null
+                    )
                 }
 
             /*
-             * Save decoded artwork in cache.
+             * NORMAL VITE ASSET URL.
              */
-            art[key] = {
-                img,
-                ...bounds,
-            }
-
-            cleanup()
-
-            resolve(img)
+            img.src =
+                themeSrc
         }
-
-        img.onerror = () => {
-            cleanup()
-
-            console.error(
-                `Failed to load poster artwork: ${key}`
-            )
-
-            /*
-             * Resolve instead of rejecting so one broken artwork
-             * doesn't crash the entire poster.
-             */
-            resolve(null)
-        }
-
-        /*
-         * Start loading.
-         */
-        img.src = objectUrl
-    })
+    )
 }
 
 
@@ -552,64 +729,73 @@ function loadSvgImage(key) {
    ============================================================ */
 
 function loadArtwork() {
-    /*
-     * Already loading/loaded?
-     *
-     * Return the existing promise.
-     */
-    if (artworkPromise) {
+    if (
+        artworkPromise
+    ) {
         return artworkPromise
     }
 
     /*
-     * Start ALL SVGs simultaneously.
+     * 1, 2, 3 + 4 all start at the same time.
      */
-    artworkPromise = Promise.all(
-        Object.keys(ARTWORK).map(
-            (key) =>
-                loadSvgImage(key)
-        )
-    )
-        .then((results) => {
-            /*
-             * Copy callbacks before clearing the Set.
-             */
-            const callbacks = [
-                ...artworkRedrawCallbacks,
-            ]
+    artworkPromise =
+        Promise.all([
+            loadSvgImage(
+                'summitLogo'
+            ),
 
-            artworkRedrawCallbacks.clear()
+            loadSvgImage(
+                'partners'
+            ),
 
-            /*
-             * Redraw every canvas that rendered before the SVGs
-             * were ready.
-             */
-            callbacks.forEach(
-                (redraw) => {
-                    try {
-                        redraw()
-                    } catch (error) {
-                        console.error(
-                            'Poster artwork redraw failed:',
-                            error
-                        )
-                    }
+            loadSvgImage(
+                'headline'
+            ),
+
+            loadThemeImage(),
+        ])
+            .then(
+                (
+                    results
+                ) => {
+                    const callbacks = [
+                        ...artworkRedrawCallbacks,
+                    ]
+
+                    artworkRedrawCallbacks.clear()
+
+                    callbacks.forEach(
+                        (
+                            redraw
+                        ) => {
+                            try {
+                                redraw()
+                            } catch (
+                                error
+                            ) {
+                                console.error(
+                                    'Poster artwork redraw failed:',
+                                    error
+                                )
+                            }
+                        }
+                    )
+
+                    return results
                 }
             )
+            .catch(
+                (
+                    error
+                ) => {
+                    console.error(
+                        'Poster artwork loading failed:',
+                        error
+                    )
 
-            return results
-        })
-        .catch((error) => {
-            console.error(
-                'Poster artwork loading failed:',
-                error
+                    return []
+                }
             )
-
-            /*
-             * Do not leave an unhandled rejected promise.
-             */
-            return []
-        })
 
     return artworkPromise
 }
@@ -619,18 +805,44 @@ function loadArtwork() {
    ARTWORK ASPECT RATIO
    ============================================================ */
 
-function artAspect(key) {
-    const a = art[key]
+function artAspect(
+    key
+) {
+    const a =
+        art[key]
 
     if (
         a &&
         a.sw &&
         a.sh
     ) {
-        return a.sw / a.sh
+        return (
+            a.sw /
+            a.sh
+        )
     }
 
-    return ARTWORK[key].aspect
+    /*
+     * Theme fallback before image loads.
+     */
+    if (
+        key ===
+        'theme'
+    ) {
+        /*
+         * Same approximate footprint used by your
+         * working General Summit code.
+         */
+        return (
+            1 /
+            1.3037
+        )
+    }
+
+    return (
+        ARTWORK[key]
+            .aspect
+    )
 }
 
 
@@ -646,19 +858,27 @@ function artSize(
     }
 ) {
     const aspect =
-        artAspect(key)
+        artAspect(
+            key
+        )
 
-    if (width != null) {
+    if (
+        width != null
+    ) {
         return {
             width,
+
             height:
-                width / aspect,
+                width /
+                aspect,
         }
     }
 
     return {
         width:
-            height * aspect,
+            height *
+            aspect,
+
         height,
     }
 }
@@ -681,11 +901,9 @@ function placeArt(
             size
         )
 
-    const a = art[key]
+    const a =
+        art[key]
 
-    /*
-     * If SVG is already decoded, draw it immediately.
-     */
     if (
         a &&
         a.img &&
@@ -693,22 +911,20 @@ function placeArt(
     ) {
         ctx.drawImage(
             a.img,
+
             a.sx,
             a.sy,
             a.sw,
             a.sh,
+
             x,
             y,
+
             box.width,
             box.height
         )
     }
 
-    /*
-     * Return the footprint even if artwork is not loaded yet.
-     *
-     * This prevents the rest of the poster layout from shifting.
-     */
     return box
 }
 
@@ -776,7 +992,9 @@ function roundRect(
 
 
 const nativeTracking =
-    (ctx) =>
+    (
+        ctx
+    ) =>
         'letterSpacing' in ctx
 
 
@@ -785,10 +1003,13 @@ function setFont(
     spec,
     tracking = 0
 ) {
-    ctx.font = spec
+    ctx.font =
+        spec
 
     if (
-        nativeTracking(ctx)
+        nativeTracking(
+            ctx
+        )
     ) {
         ctx.letterSpacing =
             `${tracking}px`
@@ -804,15 +1025,20 @@ function measure(
     str
 ) {
     const t =
-        ctx._tracking || 0
+        ctx._tracking ||
+        0
 
     if (
         !t ||
-        nativeTracking(ctx)
+        nativeTracking(
+            ctx
+        )
     ) {
-        return ctx.measureText(
-            str
-        ).width
+        return (
+            ctx.measureText(
+                str
+            ).width
+        )
     }
 
     let w = 0
@@ -827,7 +1053,10 @@ function measure(
             t
     }
 
-    return w - t
+    return (
+        w -
+        t
+    )
 }
 
 
@@ -836,11 +1065,22 @@ function inkWidth(
     str
 ) {
     const t =
-        ctx._tracking || 0
+        ctx._tracking ||
+        0
 
-    return nativeTracking(ctx)
-        ? measure(ctx, str) - t
-        : measure(ctx, str)
+    return nativeTracking(
+        ctx
+    )
+        ? measure(
+            ctx,
+            str
+        ) -
+        t
+
+        : measure(
+            ctx,
+            str
+        )
 }
 
 
@@ -851,11 +1091,14 @@ function write(
     y
 ) {
     const t =
-        ctx._tracking || 0
+        ctx._tracking ||
+        0
 
     if (
         !t ||
-        nativeTracking(ctx)
+        nativeTracking(
+            ctx
+        )
     ) {
         ctx.fillText(
             str,
@@ -866,7 +1109,8 @@ function write(
         return
     }
 
-    let cx = x
+    let cx =
+        x
 
     for (
         const ch of str
@@ -895,19 +1139,23 @@ function clamp(
         measure(
             ctx,
             str
-        ) <= maxWidth
+        ) <=
+        maxWidth
     ) {
         return str
     }
 
-    let out = str
+    let out =
+        str
 
     while (
-        out.length > 1 &&
+        out.length >
+        1 &&
         measure(
             ctx,
             `${out}…`
-        ) > maxWidth
+        ) >
+        maxWidth
     ) {
         out =
             out.slice(
@@ -974,12 +1222,15 @@ function shadowed(
    BACKGROUND
    ============================================================ */
 
-function drawBackground(ctx) {
+function drawBackground(
+    ctx
+) {
     const g =
         ctx.createLinearGradient(
             0,
             0,
-            DESIGN_W * 0.8,
+            DESIGN_W *
+            0.8,
             DESIGN_H
         )
 
@@ -1003,7 +1254,8 @@ function drawBackground(ctx) {
         COLOR.navy
     )
 
-    ctx.fillStyle = g
+    ctx.fillStyle =
+        g
 
     ctx.fillRect(
         0,
@@ -1018,11 +1270,14 @@ function drawBackground(ctx) {
    LATTICE
    ============================================================ */
 
-function drawLattice(ctx) {
+function drawLattice(
+    ctx
+) {
     const {
         tile,
         weight,
-    } = L.lattice
+    } =
+        L.lattice
 
     ctx.save()
 
@@ -1033,15 +1288,23 @@ function drawLattice(ctx) {
         weight
 
     for (
-        let y = -tile;
+        let y =
+            -tile;
+
         y <
-            DESIGN_H + tile;
+        DESIGN_H +
+        tile;
+
         y += tile
     ) {
         for (
-            let x = -tile;
+            let x =
+                -tile;
+
             x <
-                DESIGN_W + tile;
+            DESIGN_W +
+            tile;
+
             x += tile
         ) {
             ctx.beginPath()
@@ -1054,23 +1317,29 @@ function drawLattice(ctx) {
             )
 
             ctx.moveTo(
-                x + tile / 2,
+                x +
+                tile / 2,
                 y
             )
 
             ctx.lineTo(
-                x + tile,
-                y + tile / 2
+                x +
+                tile,
+                y +
+                tile / 2
             )
 
             ctx.lineTo(
-                x + tile / 2,
-                y + tile
+                x +
+                tile / 2,
+                y +
+                tile
             )
 
             ctx.lineTo(
                 x,
-                y + tile / 2
+                y +
+                tile / 2
             )
 
             ctx.closePath()
@@ -1087,12 +1356,15 @@ function drawLattice(ctx) {
    BRAND BAR
    ============================================================ */
 
-function drawBrandBar(ctx) {
+function drawBrandBar(
+    ctx
+) {
     const {
         centerY,
         summitLogo,
         partners,
-    } = L.brandBar
+    } =
+        L.brandBar
 
     const logo =
         artSize(
@@ -1106,9 +1378,13 @@ function drawBrandBar(ctx) {
     placeArt(
         ctx,
         'summitLogo',
+
         summitLogo.x,
+
         centerY -
-            logo.height / 2,
+        logo.height /
+        2,
+
         logo
     )
 
@@ -1124,11 +1400,15 @@ function drawBrandBar(ctx) {
     placeArt(
         ctx,
         'partners',
+
         DESIGN_W -
-            partners.right -
-            lockup.width,
+        partners.right -
+        lockup.width,
+
         centerY -
-            lockup.height / 2,
+        lockup.height /
+        2,
+
         lockup
     )
 }
@@ -1138,7 +1418,9 @@ function drawBrandBar(ctx) {
    KICKER
    ============================================================ */
 
-function drawKicker(ctx) {
+function drawKicker(
+    ctx
+) {
     const {
         top,
         size,
@@ -1146,7 +1428,8 @@ function drawKicker(ctx) {
         height,
         radius,
         tracking,
-    } = L.kicker
+    } =
+        L.kicker
 
     setFont(
         ctx,
@@ -1159,13 +1442,15 @@ function drawKicker(ctx) {
             ctx,
             CONTENT.kicker
         ) +
-        padX * 2
+        padX *
+        2
 
     const x =
         (
             DESIGN_W -
             boxWidth
-        ) / 2
+        ) /
+        2
 
     shadowed(
         ctx,
@@ -1194,10 +1479,15 @@ function drawKicker(ctx) {
     write(
         ctx,
         CONTENT.kicker,
-        x + padX,
+
+        x +
+        padX,
+
         top +
-            height / 2 +
-            size * 0.36
+        height /
+        2 +
+        size *
+        0.36
     )
 }
 
@@ -1206,35 +1496,81 @@ function drawKicker(ctx) {
    HERO
    ============================================================ */
 
-function drawHero(ctx) {
+function drawHero(
+    ctx
+) {
     const {
         top,
         height,
         headlineX,
         themeX,
-    } = L.hero
+        themeWidth,
+    } =
+        L.hero
+
+
+    /* --------------------------------------------------------
+       LEFT — FFS headline
+       -------------------------------------------------------- */
 
     const headline =
         placeArt(
             ctx,
             'headline',
+
             headlineX,
             top,
+
             {
                 height,
             }
         )
 
+
+    /* --------------------------------------------------------
+       RIGHT — Beyond Self / 4.svg
+
+       IMPORTANT:
+       Render by WIDTH, exactly like the working renderer.
+       Natural image ratio determines the height.
+       -------------------------------------------------------- */
+
+    const themeSize =
+        artSize(
+            'theme',
+            {
+                width:
+                    themeWidth,
+            }
+        )
+
+
+    /*
+     * Vertically centre 4.svg in the hero area.
+     */
+    const themeY =
+        top +
+        (
+            height -
+            themeSize.height
+        ) /
+        2
+
+
     const theme =
         placeArt(
             ctx,
             'theme',
+
             themeX,
-            top,
+            themeY,
+
             {
-                height: 45,
+                width:
+                    themeWidth,
             }
         )
+
 
     return (
         top +
@@ -1304,14 +1640,16 @@ function drawPhoto(
             horizontal = 50,
             vertical = 50,
         } =
-            adjustments || {}
+            adjustments ||
+            {}
 
         const cover =
             Math.max(
                 box /
-                    image.naturalWidth,
+                image.naturalWidth,
+
                 box /
-                    image.naturalHeight
+                image.naturalHeight
             )
 
         const w =
@@ -1323,8 +1661,13 @@ function drawPhoto(
             cover
 
         ctx.translate(
-            x + box / 2,
-            y + box / 2
+            x +
+            box /
+            2,
+
+            y +
+            box /
+            2
         )
 
         ctx.scale(
@@ -1334,20 +1677,30 @@ function drawPhoto(
 
         ctx.translate(
             (
-                (horizontal - 50) /
+                (
+                    horizontal -
+                    50
+                ) /
                 100
-            ) * box,
+            ) *
+            box,
 
             (
-                (vertical - 50) /
+                (
+                    vertical -
+                    50
+                ) /
                 100
-            ) * box
+            ) *
+            box
         )
 
         ctx.drawImage(
             image,
-            -w / 2,
-            -h / 2,
+            -w /
+            2,
+            -h /
+            2,
             w,
             h
         )
@@ -1367,15 +1720,20 @@ function drawPhoto(
         write(
             ctx,
             label,
+
             x +
-                box / 2 -
-                measure(
-                    ctx,
-                    label
-                ) / 2,
+            box /
+            2 -
+            measure(
+                ctx,
+                label
+            ) /
+            2,
+
             y +
-                box / 2 +
-                4
+            box /
+            2 +
+            4
         )
     }
 
@@ -1390,15 +1748,25 @@ function drawPhoto(
             box
         )
 
-    ctx.lineWidth = 2
+    ctx.lineWidth =
+        2
 
     roundRect(
         ctx,
-        x + 1,
-        y + 1,
-        box - 2,
-        box - 2,
-        L.identity.radius - 1
+        x +
+        1,
+
+        y +
+        1,
+
+        box -
+        2,
+
+        box -
+        2,
+
+        L.identity.radius -
+        1
     )
 
     ctx.stroke()
@@ -1455,7 +1823,8 @@ function drawIdentity(
         nameLine +
         L.role.gap +
         roleLine +
-        L.role.gap * 0.75 +
+        L.role.gap *
+        0.75 +
         roleLine
 
     let baseline =
@@ -1463,12 +1832,14 @@ function drawIdentity(
         (
             box -
             blockHeight
-        ) / 2 +
-        nameLine * 0.8
+        ) /
+        2 +
+        nameLine *
+        0.8
 
-    /*
-     * NAME
-     */
+
+    /* NAME */
+
     setFont(
         ctx,
         `900 ${L.name.size}px ${FONT.display}`,
@@ -1480,21 +1851,25 @@ function drawIdentity(
 
     write(
         ctx,
+
         clamp(
             ctx,
+
             (
                 details.name ||
                 'Your name'
             ).toUpperCase(),
+
             copyWidth
         ),
+
         copyX,
         baseline
     )
 
-    /*
-     * TITLE
-     */
+
+    /* TITLE */
+
     baseline +=
         L.role.gap +
         roleLine
@@ -1510,23 +1885,28 @@ function drawIdentity(
 
     write(
         ctx,
+
         clamp(
             ctx,
+
             (
                 details.title ||
                 'Your designation'
             ).toUpperCase(),
+
             copyWidth
         ),
+
         copyX,
         baseline
     )
 
-    /*
-     * COMPANY
-     */
+
+    /* COMPANY */
+
     baseline +=
-        L.role.gap * 0.75 +
+        L.role.gap *
+        0.75 +
         roleLine
 
     ctx.fillStyle =
@@ -1534,14 +1914,18 @@ function drawIdentity(
 
     write(
         ctx,
+
         clamp(
             ctx,
+
             (
                 details.company ||
                 'Your organisation'
             ).toUpperCase(),
+
             copyWidth
         ),
+
         copyX,
         baseline
     )
@@ -1552,14 +1936,18 @@ function drawIdentity(
    FOOTER BAND
    ============================================================ */
 
-function drawBand(ctx) {
+function drawBand(
+    ctx
+) {
     ctx.fillStyle =
         COLOR.ink
 
     ctx.fillRect(
         0,
+
         DESIGN_H -
-            L.band.height,
+        L.band.height,
+
         DESIGN_W,
         L.band.height
     )
@@ -1570,7 +1958,9 @@ function drawBand(ctx) {
    META BAR
    ============================================================ */
 
-function drawMeta(ctx) {
+function drawMeta(
+    ctx
+) {
     const {
         height,
         bottom,
@@ -1581,7 +1971,8 @@ function drawMeta(ctx) {
         labelSize,
         labelTracking,
         valueSize,
-    } = L.meta
+    } =
+        L.meta
 
     const top =
         DESIGN_H -
@@ -1590,7 +1981,8 @@ function drawMeta(ctx) {
 
     const width =
         DESIGN_W -
-        L.padX * 2
+        L.padX *
+        2
 
     shadowed(
         ctx,
@@ -1615,17 +2007,25 @@ function drawMeta(ctx) {
 
     const inner =
         width -
-        padX * 2
+        padX *
+        2
 
     const total =
         columns.reduce(
-            (a, b) => a + b,
+            (
+                a,
+                b
+            ) =>
+                a +
+                b,
             0
         )
 
     const cellWidths =
         columns.map(
-            (c) =>
+            (
+                c
+            ) =>
                 (
                     c /
                     total
@@ -1633,25 +2033,31 @@ function drawMeta(ctx) {
                 inner
         )
 
-    /*
-     * One value size for the entire metadata bar.
-     */
     setFont(
         ctx,
         `800 ${valueSize}px ${FONT.display}`,
         -0.4
     )
 
-    let valueScale = 1
+    let valueScale =
+        1
 
     CONTENT.meta.forEach(
-        (cell, index) => {
+        (
+            cell,
+            index
+        ) => {
             const room =
-                cellWidths[index] -
-                cellPadX * 1.6
+                cellWidths[
+                    index
+                ] -
+                cellPadX *
+                1.6
 
             cell.value.forEach(
-                (line) => {
+                (
+                    line
+                ) => {
                     const w =
                         measure(
                             ctx,
@@ -1659,12 +2065,15 @@ function drawMeta(ctx) {
                         )
 
                     if (
-                        w > room
+                        w >
+                        room
                     ) {
                         valueScale =
                             Math.min(
                                 valueScale,
-                                room / w
+
+                                room /
+                                w
                             )
                     }
                 }
@@ -1677,15 +2086,19 @@ function drawMeta(ctx) {
         valueScale
 
     const labelLine =
-        labelSize * 1.15
+        labelSize *
+        1.15
 
     const valueLine =
-        fittedValue * 0.98
+        fittedValue *
+        0.98
 
     const maxLines =
         Math.max(
             ...CONTENT.meta.map(
-                (cell) =>
+                (
+                    cell
+                ) =>
                     cell.value.length
             )
         )
@@ -1694,37 +2107,45 @@ function drawMeta(ctx) {
         labelLine +
         6 +
         maxLines *
-            valueLine
+        valueLine
 
     const labelBaseline =
         top +
         (
             height -
             blockHeight
-        ) / 2 +
-        labelSize * 0.85
+        ) /
+        2 +
+        labelSize *
+        0.85
 
     const firstValueBaseline =
         labelBaseline +
         6 +
-        fittedValue * 0.78
+        fittedValue *
+        0.78
 
     let x =
         L.padX +
         padX
 
     CONTENT.meta.forEach(
-        (cell, index) => {
+        (
+            cell,
+            index
+        ) => {
             const cellWidth =
-                cellWidths[index]
+                cellWidths[
+                    index
+                ]
 
             const textX =
                 x +
                 cellPadX
 
-            /*
-             * LABEL
-             */
+
+            /* LABEL */
+
             setFont(
                 ctx,
                 `700 ${labelSize}px ${FONT.ui}`,
@@ -1741,9 +2162,9 @@ function drawMeta(ctx) {
                 labelBaseline
             )
 
-            /*
-             * VALUE
-             */
+
+            /* VALUE */
+
             setFont(
                 ctx,
                 `800 ${fittedValue}px ${FONT.display}`,
@@ -1754,39 +2175,50 @@ function drawMeta(ctx) {
                 COLOR.deepTeal
 
             cell.value.forEach(
-                (line, i) => {
+                (
+                    line,
+                    i
+                ) => {
                     write(
                         ctx,
                         line,
                         textX,
+
                         firstValueBaseline +
-                            i *
-                                valueLine
+                        i *
+                        valueLine
                     )
                 }
             )
 
-            /*
-             * DIVIDER
-             */
+
+            /* DIVIDER */
+
             if (
                 index <
-                CONTENT.meta.length - 1
+                CONTENT.meta.length -
+                1
             ) {
                 ctx.fillStyle =
                     COLOR.metaRule
 
                 ctx.fillRect(
                     x +
-                        cellWidth -
-                        0.8,
-                    top + 12,
+                    cellWidth -
+                    0.8,
+
+                    top +
+                    12,
+
                     1.6,
-                    height - 24
+
+                    height -
+                    24
                 )
             }
 
-            x += cellWidth
+            x +=
+                cellWidth
         }
     )
 }
@@ -1796,13 +2228,16 @@ function drawMeta(ctx) {
    FOOTER
    ============================================================ */
 
-function drawFooter(ctx) {
+function drawFooter(
+    ctx
+) {
     const {
         size,
         smallSize,
         bottom,
         tracking,
-    } = L.footer
+    } =
+        L.footer
 
     const baseline =
         DESIGN_H -
@@ -1839,11 +2274,12 @@ function drawFooter(ctx) {
                 mainWidth +
                 smallWidth
             )
-        ) / 2
+        ) /
+        2
 
-    /*
-     * MAIN FOOTER
-     */
+
+    /* MAIN FOOTER */
+
     setFont(
         ctx,
         `800 ${size}px ${FONT.display}`,
@@ -1860,11 +2296,12 @@ function drawFooter(ctx) {
         baseline
     )
 
-    x += mainWidth
+    x +=
+        mainWidth
 
-    /*
-     * SMALL FOOTER
-     */
+
+    /* SMALL FOOTER */
+
     setFont(
         ctx,
         `700 ${smallSize}px ${FONT.ui}`,
@@ -1878,8 +2315,10 @@ function drawFooter(ctx) {
         ctx,
         CONTENT.footerSmall,
         x,
+
         baseline -
-            size * 0.06
+        size *
+        0.06
     )
 }
 
@@ -1896,20 +2335,26 @@ export function drawPoster(
         adjustments,
     } = {}
 ) {
-    if (!canvas) {
+    if (
+        !canvas
+    ) {
         return
     }
 
     const ctx =
-        canvas.getContext('2d')
+        canvas.getContext(
+            '2d'
+        )
 
-    if (!ctx) {
+    if (
+        !ctx
+    ) {
         return
     }
 
 
     /* --------------------------------------------------------
-       Start artwork loading immediately.
+       Start all artwork immediately
        -------------------------------------------------------- */
 
     const artworkLoading =
@@ -1917,36 +2362,35 @@ export function drawPoster(
 
 
     /* --------------------------------------------------------
-       Determine whether all artwork is already available.
+       Check all FOUR assets
        -------------------------------------------------------- */
 
-    const artworkReady =
-        Object.keys(
-            ARTWORK
-        ).every(
-            (key) =>
-                art[key] &&
-                art[key].img &&
-                art[key].img.naturalWidth
-        )
+    const artworkReady = (
+        art.summitLogo &&
+        art.summitLogo.img &&
+        art.summitLogo.img.naturalWidth &&
+
+        art.partners &&
+        art.partners.img &&
+        art.partners.img.naturalWidth &&
+
+        art.headline &&
+        art.headline.img &&
+        art.headline.img.naturalWidth &&
+
+        art.theme &&
+        art.theme.img &&
+        art.theme.img.naturalWidth
+    )
 
 
     /* --------------------------------------------------------
-       If artwork isn't ready yet, schedule a redraw.
-
-       IMPORTANT:
-       This uses a Set of callback functions.
-
-       There is NO canvasStates Map/WeakMap here.
-
-       Therefore the previous:
-
-           canvasStates is not iterable
-
-       error cannot happen.
+       Redraw after assets load
        -------------------------------------------------------- */
 
-    if (!artworkReady) {
+    if (
+        !artworkReady
+    ) {
         artworkRedrawCallbacks.add(
             () => {
                 drawPoster(
@@ -1963,7 +2407,7 @@ export function drawPoster(
 
 
     /* --------------------------------------------------------
-       Canvas dimensions.
+       Canvas
        -------------------------------------------------------- */
 
     canvas.width =
@@ -1972,10 +2416,6 @@ export function drawPoster(
     canvas.height =
         CANVAS_H
 
-
-    /* --------------------------------------------------------
-       Coordinate system.
-       -------------------------------------------------------- */
 
     ctx.setTransform(
         SCALE,
@@ -1986,10 +2426,6 @@ export function drawPoster(
         0
     )
 
-
-    /* --------------------------------------------------------
-       Canvas rendering settings.
-       -------------------------------------------------------- */
 
     ctx.textBaseline =
         'alphabetic'
@@ -2008,55 +2444,39 @@ export function drawPoster(
        DRAW POSTER
        ======================================================== */
 
-    /*
-     * Background
-     */
-    drawBackground(ctx)
+    drawBackground(
+        ctx
+    )
+
+    drawLattice(
+        ctx
+    )
+
+    drawBand(
+        ctx
+    )
+
+    drawBrandBar(
+        ctx
+    )
+
+    drawKicker(
+        ctx
+    )
 
 
-    /*
-     * Geometric lattice
-     */
-    drawLattice(ctx)
-
-
-    /*
-     * Bottom dark band
-     */
-    drawBand(ctx)
-
-
-    /*
-     * Top brand logos
-     */
-    drawBrandBar(ctx)
-
-
-    /*
-     * "I AM ATTENDING"
-     */
-    drawKicker(ctx)
-
-
-    /*
-     * Hero artwork
-     */
     const afterHero =
-        drawHero(ctx)
+        drawHero(
+            ctx
+        )
 
 
-    /*
-     * Spacing after hero
-     */
     const afterRule =
         ruleGap(
             afterHero
         )
 
 
-    /*
-     * Person identity section
-     */
     drawIdentity(
         ctx,
         afterRule,
@@ -2066,24 +2486,20 @@ export function drawPoster(
     )
 
 
-    /*
-     * Date / Time / Venue
-     */
-    drawMeta(ctx)
+    drawMeta(
+        ctx
+    )
 
 
-    /*
-     * Footer
-     */
-    drawFooter(ctx)
+    drawFooter(
+        ctx
+    )
 
-
-    /* --------------------------------------------------------
-       Prevent an unhandled promise rejection.
-       -------------------------------------------------------- */
 
     artworkLoading.catch(
-        (error) => {
+        (
+            error
+        ) => {
             console.error(
                 'Poster artwork loading error:',
                 error
@@ -2098,24 +2514,14 @@ export function drawPoster(
    ============================================================ */
 
 export function loadPosterFonts() {
-
-    /*
-     * IMPORTANT:
-     *
-     * Artwork starts loading immediately at the same time as
-     * fonts. We don't wait for fonts first and then start SVGs.
-     */
     const artwork =
         loadArtwork()
 
-
-    /*
-     * Browser doesn't support Font Loading API.
-     */
-    if (!document.fonts) {
+    if (
+        !document.fonts
+    ) {
         return artwork
     }
-
 
     const faces = [
         '900 100px "Inter"',
@@ -2131,19 +2537,20 @@ export function loadPosterFonts() {
         '600 100px "Adapter PE Variable Display"',
     ]
 
-
-    /*
-     * Fonts and artwork load in parallel.
-     */
     return Promise.all([
         artwork,
 
         ...faces.map(
-            (face) =>
+            (
+                face
+            ) =>
                 document.fonts
-                    .load(face)
+                    .load(
+                        face
+                    )
                     .catch(
-                        () => null
+                        () =>
+                            null
                     )
         ),
     ])
@@ -2157,17 +2564,6 @@ export function loadPosterFonts() {
 /* ============================================================
    OPTIONAL ARTWORK PRELOAD
    ============================================================ */
-
-/*
- * You can import this function in your React component and
- * call it as soon as the poster page/component mounts.
-
- * Example:
-
- * useEffect(() => {
- *     preloadPosterArtwork()
- * }, [])
- */
 
 export function preloadPosterArtwork() {
     return loadArtwork()
